@@ -1,5 +1,8 @@
+%%time
 from nltk.tokenize import word_tokenize
 import numpy as np
+import nltk
+nltk.download('punkt')
 
 def data_stream():
     """Stream the data in 'leipzig100k.txt' """
@@ -8,7 +11,7 @@ def data_stream():
             for w in word_tokenize(line):
                 if w.isalnum():
                     yield w
-   
+                    
 def bloom_filter_set():
     """Stream the data in 'Proper.txt' """
     with open('Proper.txt', 'r') as f:
@@ -28,7 +31,10 @@ def uhf(rng):
     """Returns a hash function that can map a word to a number in the range
     0 - rng
     """
-    pass
+    p=567629137
+    a = np.random.randint(1,p)
+    b = np.random.randint(0,p)
+    return lambda x: ((a*x+b)%p)%rng
 
 ############### 
 
@@ -37,17 +43,38 @@ def uhf(rng):
 from bitarray import bitarray
 size = 2**18   # size of the filter
 
-hash_fns = [None, None, None, None, None]  # place holder for hash functions
+hash_fns = [uhf(size), uhf(size), uhf(size), uhf(size), uhf(size)]  # place holder for hash functions
 bloom_filter = None
 num_words = 0         # number in data stream
 num_words_in_set = 0  # number in Bloom filter's set
 
-#for word in bloom_filter_set(): # add the word to the filter by hashing etc.
-#    pass 
+a=bitarray()
+for i in range(size):
+    a.append(False)
 
-#for word in data_stream():  # check for membership in the Bloom filter
-#    pass 
-
+for word in bloom_filter_set(): # add the word to the filter by hashing etc.
+        wordB=''.join(format(ord(x), 'b') for x in word)
+        wordB=int(wordB,2)
+        a[hash_fns[0](wordB)]=True
+        a[hash_fns[1](wordB)]=True
+        a[hash_fns[2](wordB)]=True
+        a[hash_fns[3](wordB)]=True
+        a[hash_fns[4](wordB)]=True
+        num_words+=1
+fp=0
+k=0
+for word in data_stream():  # check for membership in the Bloom filter
+        wordB=''.join(format(ord(x), 'b') for x in word)
+        wordB=int(wordB,2)      
+        num_words_in_set+=1
+        if   (a[hash_fns[0](wordB)]==True and a[hash_fns[1](wordB)]==True and a[hash_fns[2](wordB)]==True and a[hash_fns[3](wordB)]==True and a[hash_fns[4](wordB)]==True):    
+             k+=1
+        if   a[hash_fns[0](wordB)]==True and a[hash_fns[1](wordB)]==True and a[hash_fns[2](wordB)]==True and a[hash_fns[3](wordB)]==True and a[hash_fns[4](wordB)]==True and not (word in bloom_filter_set()):
+            fp+=1
+        
+                         
+print("Total number of False positives",fp)
+print("False positive Percentage",fp/k * 100)
 print('Total number of words in stream = %s'%(num_words,))
 print('Total number of words in stream = %s'%(num_words_in_set,))
       
