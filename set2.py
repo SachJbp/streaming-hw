@@ -2,6 +2,7 @@
 from nltk.tokenize import word_tokenize
 import numpy as np
 import nltk
+import statistics
 nltk.download('punkt')
 
 def data_stream():
@@ -55,6 +56,7 @@ for i in range(size):
 for word in bloom_filter_set(): # add the word to the filter by hashing etc.
         wordB=''.join(format(ord(x), 'b') for x in word)
         wordB=int(wordB,2)
+
         a[hash_fns[0](wordB)]=True
         a[hash_fns[1](wordB)]=True
         a[hash_fns[2](wordB)]=True
@@ -81,20 +83,46 @@ print('Total number of words in stream = %s'%(num_words_in_set,))
 ################### Part 2 ######################
 
 hash_range = 24 # number of bits in the range of the hash functions
-fm_hash_functions = [None]*35  # Create the appropriate hashes here
+fm_hash_functions = [uhf(2**24) for _ in range(35)]  # Create the appropriate hashes here
+
 
 def num_trailing_bits(n):
     """Returns the number of trailing zeros in bin(n)
 
     n: integer
     """
-    pass
+    
+    b=bin(n)
+    #print(b)
+    bt=b[-1]
+    #print(bt)
+    tb=0
+    i=1
+    while(not (int(bt) == 1 or bt=='b') ) :
+        tb+=1
+        i+=1
+        bt=b[-i]
+    #print(tb)
+    return tb
+    
 
 num_distinct = 0
-
-#for word in data_stream(): # Implement the Flajolet-Martin algorithm
-#    pass
-
+j=0
+maxTB=[0]*35
+for word in data_stream(): # Implement the Flajolet-Martin algorithm
+    
+        wordB=''.join(format(ord(x), 'b') for x in word)
+        wordB=int(wordB,2)
+        if j > 500 :
+            break
+        for i in range(35):
+            if maxTB[i] < num_trailing_bits(fm_hash_functions[i](wordB)):
+                maxTB[i] = num_trailing_bits(fm_hash_functions[i](wordB))
+        j+=1
+AvgEst=[]*5
+for i in range(0,35,7):
+    AvgEst.append(np.average(maxTB[i:i+7]))
+num_distinct=2**statistics.median(AvgEst)
 print("Estimate of number of distinct elements = %s"%(num_distinct,))
 
 ################### Part 3 ######################
