@@ -113,8 +113,6 @@ for word in data_stream(): # Implement the Flajolet-Martin algorithm
     
         wordB=''.join(format(ord(x), 'b') for x in word)
         wordB=int(wordB,2)
-        if j > 500 :
-            break
         for i in range(35):
             if maxTB[i] < num_trailing_bits(fm_hash_functions[i](wordB)):
                 maxTB[i] = num_trailing_bits(fm_hash_functions[i](wordB))
