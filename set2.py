@@ -81,8 +81,12 @@ for word in data_stream():  # check for membership in the Bloom filter
             wordB=''.join(format(ord(x), 'b') for x in word)
         wordB=int(wordB,2)     
         num_words_in_set+=1
+        
+        #Count the number of words in data_stream() for which all slots corresponding to 5 hash function values,in bloom fliter are True
         if   (bloom_filter[hash_fns[0](wordB)]==True and bloom_filter[hash_fns[1](wordB)]==True and bloom_filter[hash_fns[2](wordB)]==True and bloom_filter[hash_fns[3](wordB)]==True and bloom_filter[hash_fns[4](wordB)]==True):    
              k+=1
+                
+        #Count the number of false positives-i.e all 5 slots in Bloom filter are true but word is not in bloom_filter_set()
         if   bloom_filter[hash_fns[0](wordB)]==True and bloom_filter[hash_fns[1](wordB)]==True and bloom_filter[hash_fns[2](wordB)]==True and bloom_filter[hash_fns[3](wordB)]==True and bloom_filter[hash_fns[4](wordB)]==True and not (word in bloom_filter_set()):
             fp+=1
         
@@ -104,13 +108,13 @@ def num_trailing_bits(n):
     n: integer
     """
     b=bin(n)
-    b1=str(b).rstrip('0')
-    tb=len(b)-len(b1)
+    b1=str(b).rstrip('0')  # Strip the bin(n) of trailing zeros 
+    tb=len(b)-len(b1)  #Difference between the lengths of bin(n) and that after stripping trailing zeros gives us the length of trailing 0s
     return tb
     
 num_distinct = 0
 j=0
-maxTB=[0]*35
+maxTB=[0]*35  # to track the maximum length of trailing zeros for each of the 35 hash functions
 
 for word in data_stream(): # Implement the Flajolet-Martin algorithm
         try :
@@ -132,14 +136,29 @@ print("Estimate of number of distinct elements = %s"%(num_distinct,))
 
 ################### Part 3 ######################
 
-var_reservoir = [0]*512
-second_moment = 0
-third_moment = 0
+var_reservoir=[]
 
-# You can use numpy.random's API for maintaining the reservoir of variables
+genList=list(data_stream())
+np.random.shuffle(genList) 
+var_reservoir=genList[0:512]  #variable reservoir
+ 
+m2=[]
+m3=[]
 
-#for word in data_stream(): # Imoplement the AMS algorithm here
-#    pass 
+# Select random positions from the reservoir sample for each position,find the frequency of the word in the reservoir threafter 
+
+for i in range(100):
+    j=np.random.randint(0,512)
+    wordj=var_reservoir[j]
+    fq=1
+    for k in range(j+1,512):
+        if var_reservoir[k]==wordj:
+            fq+=1
+    m2.append(512*(2*fq-1))
+    m3.append(512*(fq**3 - (fq-1)**3))
+
+second_moment=np.average(m2)
+third_moment=np.average(m3)
       
 print("Estimate of second moment = %s"%(second_moment,))
 print("Estimate of third moment = %s"%(third_moment,))
