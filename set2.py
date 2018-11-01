@@ -154,8 +154,8 @@ for i in range(100):
     for k in range(j+1,512):
         if var_reservoir[k]==wordj:
             fq+=1
-    m2.append(512*(2*fq-1))
-    m3.append(512*(fq**3 - (fq-1)**3))
+    m2.append(num_words_in_set*(2*fq-1))
+    m3.append(num_words_in_set*(fq**3 - (fq-1)**3))
 
 second_moment=np.average(m2)
 third_moment=np.average(m3)
